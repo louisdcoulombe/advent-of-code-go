@@ -1,11 +1,7 @@
-![400 stars!](./400.png)
-
-[reddit thread after completing the first six years](https://www.reddit.com/r/adventofcode/comments/klzgnx/complete_repo_and_thoughts_in_comments/)
-
-[reddit thread post 2021](https://www.reddit.com/r/adventofcode/comments/rrog0y/all_caught_up_repo_all_gogolang_thoughts_in/)
 
 ### Quick Note
-I started this in a pre-generics Go/Golang world. Maybe one day I'll come back and learn generics as they'd be quite useful here. But that's for future Alex.
+I forked https://github.com/alexchao26/advent-of-code-go as it seemed a good start for what I want to focus on, which is improve my golang.
+Thanks Alex :)
 
 ## Running Locally
 ### Requirements
@@ -15,7 +11,7 @@ Use `go run main.go -part <1 or 2>` will be usable to run the actual inputs for 
 
 Use `go test -run RegExpToMatchFunctionNames .` to run examples and unit tests via the `main_test.go` files.
 
-## Scripts (used for all years but 2019)
+## Scripts 
 Makefile should be fairly self-documenting. Alternatively you can run the binaries yourself via `go run` or `go build`.
 
 `make help` prints a help message.
