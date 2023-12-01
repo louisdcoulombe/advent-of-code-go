@@ -29,11 +29,11 @@ func main() {
 
 	if part == 1 {
 		ans := part1(input)
-		util.CopyToClipboard(fmt.Sprintf("%v", ans))
+		_ = util.CopyToClipboard(fmt.Sprintf("%v", ans))
 		fmt.Println("Output:", ans)
 	} else {
 		ans := part2(input)
-		util.CopyToClipboard(fmt.Sprintf("%v", ans))
+		_ = util.CopyToClipboard(fmt.Sprintf("%v", ans))
 		fmt.Println("Output:", ans)
 	}
 }
