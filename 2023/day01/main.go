@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
+	"time"
 	"unicode"
 
 	"github.com/louisdcoulombe/advent-of-code-go/util"
@@ -34,7 +36,8 @@ func main() {
 		_ = util.CopyToClipboard(fmt.Sprintf("%v", ans))
 		fmt.Println("Output:", ans)
 	} else {
-		ans := part2(input)
+		// ans := part2(input)
+		ans := part2FanOut(input)
 		_ = util.CopyToClipboard(fmt.Sprintf("%v", ans))
 		fmt.Println("Output:", ans)
 	}
@@ -105,6 +108,7 @@ func checkForNumberString(str string) (string, int, error) {
 }
 
 func part2(input string) int {
+	defer util.TimeTrack(time.Now(), "part2")
 	parsed := parseInput(input)
 	sum := 0
 	offset := 0
@@ -134,6 +138,72 @@ func part2(input string) int {
 
 		sum += wordValue(values, line)
 	}
+	return sum
+}
+
+func part2FanOut(input string) int {
+	defer util.TimeTrack(time.Now(), "part2 fanout")
+	worker := func(lines <-chan string, results chan<- int) {
+		for line := range lines {
+			offset := 0
+			values := []string{}
+			for i, char := range line {
+				// skip used chars
+				if offset > 0 {
+					offset -= 1
+					continue
+				}
+
+				if unicode.IsDigit(char) {
+					values = append(values, string(char))
+					continue
+				}
+
+				// Check for string numbers
+				var err error
+				var v string
+				v, offset, err = checkForNumberString(line[i:])
+				if err != nil {
+					continue
+				}
+				values = append(values, v)
+			}
+
+			results <- wordValue(values, line)
+		}
+	}
+
+	parsed := parseInput(input)
+	numJobs := len(parsed)
+	jobs := make(chan string, numJobs)
+	results := make(chan int, numJobs)
+
+	for w := 1; w < 5; w++ {
+		go worker(jobs, results)
+	}
+
+	for _, line := range parsed {
+		jobs <- line
+	}
+	close(jobs)
+
+	// Fan-in: Collect results
+	var wg sync.WaitGroup
+	wg.Add(numJobs) // Set WaitGroup counter to the number of jobs
+
+	// Launch a goroutine to wait for all jobs to finish
+	go func() {
+		wg.Wait()      // Wait for all jobs to be done
+		close(results) // Close the results channel after all jobs are processed
+	}()
+
+	// Process results
+	sum := 0
+	for result := range results {
+		sum += result
+		wg.Done() // Decrease the WaitGroup counter as each result is processed
+	}
+
 	return sum
 }
 
