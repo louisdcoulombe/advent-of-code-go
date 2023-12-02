@@ -53,14 +53,14 @@ func wordValue(values []string, line string) int {
 		if err != nil {
 			panic("Error in Atoi #1")
 		}
-		fmt.Printf("%s : %s = %v\n", line, ss, val)
+		// fmt.Printf("%s : %s = %v\n", line, ss, val)
 	} else {
 		ss := fmt.Sprintf("%s%s", values[0], values[len(values)-1])
 		val, err = strconv.Atoi(ss)
 		if err != nil {
 			panic("Error in Atoi #1")
 		}
-		fmt.Printf("%s : %s = %v\n", line, ss, val)
+		// fmt.Printf("%s : %s = %v\n", line, ss, val)
 	}
 	return val
 }
@@ -95,7 +95,8 @@ func checkForNumberString(str string) (string, int, error) {
 		if str[0:len(n)] == n {
 			num := strconv.FormatInt(int64(i)+1, 10)
 			// fmt.Printf("%s | ", num)
-			return num, len(n) - 1, nil
+			// Offset minus 2, as the last letter of the word can be used for the next!
+			return num, len(n) - 2, nil
 		}
 	}
 
@@ -106,15 +107,15 @@ func checkForNumberString(str string) (string, int, error) {
 func part2(input string) int {
 	parsed := parseInput(input)
 	sum := 0
-	// offset := 0
+	offset := 0
 	for _, line := range parsed {
 		values := []string{}
 		for i, char := range line {
 			// skip used chars
-			//if offset > 0 {
-			//offset -= 1
-			//continue
-			//}
+			if offset > 0 {
+				offset -= 1
+				continue
+			}
 
 			if unicode.IsDigit(char) {
 				values = append(values, string(char))
@@ -124,7 +125,7 @@ func part2(input string) int {
 			// Check for string numbers
 			var err error
 			var v string
-			v, _, err = checkForNumberString(line[i:])
+			v, offset, err = checkForNumberString(line[i:])
 			if err != nil {
 				continue
 			}
