@@ -6,3 +6,4 @@ prompt.txt
 
 // ignore files that are prefixed with an underscore
 _*
+\.env
