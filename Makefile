@@ -36,10 +36,10 @@ prompt: check-aoc-cookie ## get prompt, requires $AOC_SESSION_COOKIE, optional: 
 	fi
 
 test:
-	go test ./2023/day01/main.go ./2023/day01/main_test.go
+	go test ./2023/day01/main.go ./2023/day01/main_test.go -v
 
 run1:
-	go run ./2023/day01/main.go 1
+	go run ./2023/day01/main.go --part=1
 
 run2:
-	go run ./2023/day01/main.go 1
+	go run ./2023/day01/main.go --part=2
