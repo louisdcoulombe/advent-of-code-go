@@ -34,3 +34,12 @@ prompt: check-aoc-cookie ## get prompt, requires $AOC_SESSION_COOKIE, optional: 
 	else \
 		go run scripts/cmd/prompt/main.go -cookie $(AOC_SESSION_COOKIE); \
 	fi
+
+test:
+	go test ./2023/day01/main.go ./2023/day01/main_test.go
+
+run1:
+	go run ./2023/day01/main.go 1
+
+run2:
+	go run ./2023/day01/main.go 1
