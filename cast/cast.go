@@ -10,13 +10,20 @@ import (
 //   - string
 func ToInt(arg interface{}) int {
 	var val int
-	switch arg.(type) {
+	switch arg := arg.(type) {
 	case string:
 		var err error
-		val, err = strconv.Atoi(arg.(string))
+		val, err = strconv.Atoi(arg)
 		if err != nil {
 			panic("error converting string to int " + err.Error())
 		}
+
+	case uint8:
+		val = int(arg - '0')
+
+	case rune:
+		val = int(arg - '0')
+
 	default:
 		panic(fmt.Sprintf("unhandled type for int casting %T", arg))
 	}
