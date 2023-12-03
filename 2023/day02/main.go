@@ -84,23 +84,19 @@ GameLoop:
 		validGames = append(validGames, gameIdx+1)
 
 	}
-
 	// fmt.Printf("%d", validGames)
-	sum := 0
-	for _, v := range validGames {
-		sum += v
-	}
+	sum := util.Sum[int, int](validGames)
 	return sum
-}
-
-func cubePower(red int, green int, blue int) int {
-	return red * green * blue
 }
 
 type RGB struct {
 	r int
 	g int
 	b int
+}
+
+func cubePower(rgb RGB) int {
+	return rgb.r * rgb.g * rgb.b
 }
 
 func maxCubeValues(turn string, rgb RGB) RGB {
@@ -135,15 +131,12 @@ func part2(input string) int {
 		for _, turn := range strings.Split(parts[1], ";") {
 			rgb = maxCubeValues(turn, rgb)
 		}
-		sum += cubePower(rgb.r, rgb.g, rgb.b)
+		sum += cubePower(rgb)
 	}
 
 	return sum
 }
 
 func parseInput(input string) (ans []string) {
-	for _, line := range strings.Split(input, "\n") {
-		ans = append(ans, line)
-	}
-	return ans
+	return append(ans, strings.Split(input, "\n")...)
 }
