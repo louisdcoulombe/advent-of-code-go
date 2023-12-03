@@ -93,8 +93,52 @@ GameLoop:
 	return sum
 }
 
+func cubePower(red int, green int, blue int) int {
+	return red * green * blue
+}
+
+type RGB struct {
+	r int
+	g int
+	b int
+}
+
+func maxCubeValues(turn string, rgb RGB) RGB {
+	for _, item := range strings.Split(turn, ", ") {
+		parts := strings.Split(strings.Trim(item, " "), " ")
+		value, _ := strconv.Atoi(parts[0])
+		// fmt.Printf("%s = %d\n", item, value)
+		switch parts[1] {
+		case RED:
+			if value > rgb.r {
+				rgb.r = value
+			}
+		case GREEN:
+			if value > rgb.g {
+				rgb.g = value
+			}
+		case BLUE:
+			if value > rgb.b {
+				rgb.b = value
+			}
+		}
+	}
+	return rgb
+}
+
 func part2(input string) int {
-	return 0
+	parsed := parseInput(input)
+	sum := 0
+	for _, game := range parsed {
+		parts := strings.Split(game, ":")
+		rgb := RGB{0, 0, 0}
+		for _, turn := range strings.Split(parts[1], ";") {
+			rgb = maxCubeValues(turn, rgb)
+		}
+		sum += cubePower(rgb.r, rgb.g, rgb.b)
+	}
+
+	return sum
 }
 
 func parseInput(input string) (ans []string) {

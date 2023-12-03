@@ -10,7 +10,7 @@ Game 3: 8 green, 6 blue, 20 red; 5 blue, 4 red, 13 green; 5 green, 1 red
 Game 4: 1 green, 3 red, 6 blue; 3 green, 6 red; 3 green, 15 blue, 14 red
 Game 5: 6 red, 1 blue, 3 green; 2 blue, 1 red, 2 green`
 
-var example_2 = ``
+var example_2 = example_1
 
 func Test_part1(t *testing.T) {
 	tests := []struct {
@@ -47,7 +47,7 @@ func Test_part2(t *testing.T) {
 		{
 			name:  "example_2",
 			input: example_2,
-			want:  0,
+			want:  2286,
 		},
 		// {
 		// 	name:  "actual",
