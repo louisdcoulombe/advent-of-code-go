@@ -79,7 +79,7 @@ func part1(input string) int {
 
 	checkAround := func(rr int, cc int) (bool, string) {
 		hasSymbol := false
-		var symbol = "WTF"
+		symbol := "WTF"
 		for _, roff := range []int{-1, 0, 1} {
 			x := rr + roff
 			if x < 0 || x >= max_row {
@@ -176,7 +176,73 @@ func part1(input string) int {
 }
 
 func part2(input string) int {
-	return 0
+	board := parseInput(input)
+	max_row := len(board) - 1
+	max_col := len(board[0]) - 1
+	fmt.Printf("max_row: %d, max_col:%d\n", max_row, max_col)
+
+	findNumber := func(r int, c int) string {
+		number := string(board[r][c])
+		// check left and prepend digits
+		for l := c - 1; l >= 0; l-- {
+			left := rune(board[r][l])
+			if !unicode.IsNumber(left) {
+				break
+			}
+			number = string(left) + number
+		}
+
+		for r := c + 1; c <= max_col; r++ {
+			right := rune(board[r][r])
+			if !unicode.IsNumber(right) {
+				break
+			}
+			number = number + string(right)
+		}
+		fmt.Printf("%s\n", number)
+		return number
+	}
+
+	checkAround := func(rr int, cc int) []string {
+		numbers := []string{}
+		for _, roff := range []int{-1, 0, 1} {
+			x := rr + roff
+			if x < 0 || x > max_row {
+				continue
+			}
+
+			for _, coff := range []int{-1, 0, 1} {
+				y := cc + coff
+				if y < 0 || y > max_col {
+					continue
+				}
+
+				if unicode.IsNumber(rune(board[x][y])) {
+					numbers = append(numbers, findNumber(x, y))
+				}
+			}
+		}
+		return numbers
+	}
+
+	// Rows
+	sum := 0
+	for ridx, row := range board {
+		fmt.Printf("\n")
+		for cidx, col := range row {
+			if string(col) != "*" {
+				continue
+			}
+			// Check around for number
+			fmt.Printf("Found*\n")
+			numbers := checkAround(ridx, cidx)
+			if len(numbers) == 2 {
+				sum += cast.ToInt(numbers[0]) * cast.ToInt(numbers[1])
+			}
+		}
+	}
+
+	return sum
 }
 
 func parseInput(input string) (ans []string) {

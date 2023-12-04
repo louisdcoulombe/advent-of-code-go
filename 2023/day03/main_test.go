@@ -15,7 +15,7 @@ var (
 ......755.
 ...$.*....
 .664.598..`
-	example2 = ``
+	example2 = example1
 )
 
 func Test_part1(t *testing.T) {
@@ -53,7 +53,7 @@ func Test_part2(t *testing.T) {
 		{
 			name:  "example2",
 			input: example2,
-			want:  0,
+			want:  467835,
 		},
 		// {
 		// 	name:  "actual",
