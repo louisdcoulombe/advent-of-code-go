@@ -39,20 +39,6 @@ func main() {
 	}
 }
 
-func min(a int, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}
-
-func max(a int, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}
-
 func isSymbol(v rune) (bool, string) {
 	if string(v) == "." || string(v) == " " {
 		return false, ""
@@ -175,10 +161,6 @@ func part1(input string) int {
 	return sum
 }
 
-func replaceAtIndex(str string, replacement rune, index int) string {
-	return str[:index] + string(replacement) + str[index+1:]
-}
-
 func part2(input string) int {
 	board := parseInput(input)
 	max_row := len(board) - 1
@@ -188,7 +170,7 @@ func part2(input string) int {
 	findNumber := func(r int, c int) string {
 		number := string(board[r][c])
 		// Remove the number not to add it in another iteration
-		board[r] = replaceAtIndex(board[r], 'X', c)
+		board[r] = util.ReplaceAtIndex(board[r], 'X', c)
 
 		// check left and prepend digits
 		for lx := c - 1; lx >= 0; lx-- {
@@ -198,7 +180,7 @@ func part2(input string) int {
 			}
 			number = string(left) + number
 			// Remove the number not to add it in another iteration
-			board[r] = replaceAtIndex(board[r], 'X', lx)
+			board[r] = util.ReplaceAtIndex(board[r], 'X', lx)
 		}
 
 		// Check right and append digits
@@ -209,7 +191,7 @@ func part2(input string) int {
 			}
 			number = number + string(right)
 			// Remove the number not to add it in another iteration
-			board[r] = replaceAtIndex(board[r], 'X', rx)
+			board[r] = util.ReplaceAtIndex(board[r], 'X', rx)
 		}
 		fmt.Printf("%s\n", number)
 		return number
