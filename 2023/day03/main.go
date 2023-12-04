@@ -175,6 +175,10 @@ func part1(input string) int {
 	return sum
 }
 
+func replaceAtIndex(str string, replacement rune, index int) string {
+	return str[:index] + string(replacement) + str[index+1:]
+}
+
 func part2(input string) int {
 	board := parseInput(input)
 	max_row := len(board) - 1
@@ -183,21 +187,29 @@ func part2(input string) int {
 
 	findNumber := func(r int, c int) string {
 		number := string(board[r][c])
+		// Remove the number not to add it in another iteration
+		board[r] = replaceAtIndex(board[r], 'X', c)
+
 		// check left and prepend digits
-		for l := c - 1; l >= 0; l-- {
-			left := rune(board[r][l])
+		for lx := c - 1; lx >= 0; lx-- {
+			left := rune(board[r][lx])
 			if !unicode.IsNumber(left) {
 				break
 			}
 			number = string(left) + number
+			// Remove the number not to add it in another iteration
+			board[r] = replaceAtIndex(board[r], 'X', lx)
 		}
 
-		for r := c + 1; c <= max_col; r++ {
-			right := rune(board[r][r])
+		// Check right and append digits
+		for rx := c + 1; rx <= max_col; rx++ {
+			right := rune(board[r][rx])
 			if !unicode.IsNumber(right) {
 				break
 			}
 			number = number + string(right)
+			// Remove the number not to add it in another iteration
+			board[r] = replaceAtIndex(board[r], 'X', rx)
 		}
 		fmt.Printf("%s\n", number)
 		return number
@@ -237,11 +249,15 @@ func part2(input string) int {
 			fmt.Printf("Found*\n")
 			numbers := checkAround(ridx, cidx)
 			if len(numbers) == 2 {
-				sum += cast.ToInt(numbers[0]) * cast.ToInt(numbers[1])
+				sum += (cast.ToInt(numbers[0]) * cast.ToInt(numbers[1]))
+				fmt.Printf("%s adding to sum: %d", numbers, sum)
 			}
 		}
 	}
 
+	for _, row := range board {
+		fmt.Println(row)
+	}
 	return sum
 }
 
