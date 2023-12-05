@@ -68,12 +68,7 @@ func gameCount(gameCards *[]int, handCards *[]int) int {
 			}
 		}
 	}
-
-	if count == 0 {
-		return 0
-	}
-
-	return 1 << (count - 1)
+	return count
 }
 
 func part1(input string) int {
@@ -85,14 +80,44 @@ func part1(input string) int {
 		parts[0] = strings.TrimSpace(strings.Split(parts[0], ":")[1])
 		gameCards := sortedIntList(strings.Split(parts[0], " "))
 		handCards := sortedIntList(strings.Split(parts[1], " "))
-		sum += gameCount(&gameCards, &handCards)
+		count := gameCount(&gameCards, &handCards)
+		if count > 0 {
+			sum += 1 << (count - 1)
+		}
 	}
 
 	return sum
 }
 
 func part2(input string) int {
-	return 0
+	parsed := parseInput(input)
+	cards := make([]int, len(parsed))
+	for idx, line := range parsed {
+		// game card | your hand
+		parts := strings.Split(line, "|")
+		parts[0] = strings.TrimSpace(strings.Split(parts[0], ":")[1])
+		gameCards := sortedIntList(strings.Split(parts[0], " "))
+		handCards := sortedIntList(strings.Split(parts[1], " "))
+
+		count := gameCount(&gameCards, &handCards)
+		replay := 0
+		for replay < cards[idx]+1 {
+			// Increment next cards counts
+			for i := 0; i < count; i++ {
+				// dont overflow
+				if (i + idx + 1) > len(parsed)-1 {
+					break
+				}
+				cards[i+idx+1] += 1
+			}
+			replay++
+		}
+		// Record the original copy
+		cards[idx] += 1
+
+		// fmt.Printf("%d(%d):: %d\n", idx+1, count, cards)
+	}
+	return util.Sum[int, int](cards)
 }
 
 func parseInput(input string) (ans []string) {
