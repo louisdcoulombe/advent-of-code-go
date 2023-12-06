@@ -7,6 +7,8 @@ help: ## Show this help
 
 check-aoc-cookie:  ## ensures $AOC_SESSION_COOKIE env var is set
 	@ test $${AOC_SESSION_COOKIE?env var not set}
+	@ test $${YEAR?env var not set}
+	@ test $${DAY?env var not set}
 
 skeleton: ## make skeleton main(_test).go files, optional: $DAY and $YEAR
 	@ if [[ -n $$DAY && -n $$YEAR ]]; then \
@@ -36,10 +38,10 @@ prompt: check-aoc-cookie ## get prompt, requires $AOC_SESSION_COOKIE, optional: 
 	fi
 
 test:
-	go test ./2023/day04/main.go ./2023/day04/main_test.go -v
+	go test ./$(YEAR)/day$(DAY)/main.go ./2023/day$(DAY)/main_test.go -v
 
 run1:
-	go run ./2023/day04/main.go --part=1
+	go run ./$(YEAR)/day$(DAY)/main.go --part=1
 
 run2:
-	go run ./2023/day04/main.go --part=2
+	go run ./$(YEAR)/day$(DAY)/main.go --part=2
