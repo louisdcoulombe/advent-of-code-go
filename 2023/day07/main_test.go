@@ -5,8 +5,14 @@ import (
 )
 
 var (
-	example1 = ``
-	example2 = ``
+	example1 = `32T3K 765
+T55J5 684
+KK677 28
+KTJJT 220
+QQQJA 483`
+	// KKKK5 1
+	// AAAAA 0`
+	example2 = example1
 )
 
 func Test_part1(t *testing.T) {
@@ -18,7 +24,7 @@ func Test_part1(t *testing.T) {
 		{
 			name:  "example1",
 			input: example1,
-			want:  0,
+			want:  6440,
 		},
 		// {
 		// 	name:  "actual",
@@ -44,7 +50,7 @@ func Test_part2(t *testing.T) {
 		{
 			name:  "example2",
 			input: example2,
-			want:  0,
+			want:  5905,
 		},
 		// {
 		// 	name:  "actual",
