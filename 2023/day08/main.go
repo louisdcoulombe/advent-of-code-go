@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/louisdcoulombe/advent-of-code-go/cast"
+	// "github.com/louisdcoulombe/advent-of-code-go/cast"
 	"github.com/louisdcoulombe/advent-of-code-go/util"
 )
 
@@ -38,6 +38,34 @@ func main() {
 	}
 }
 
+const (
+	LEFT  = 0
+	RIGHT = 1
+)
+
+type RingBuffer struct {
+	next   int
+	buffer []int
+}
+
+func (b *RingBuffer) Next() (next int) {
+	next = b.buffer[b.next]
+	b.next = (b.next + 1) % len(b.buffer)
+	return next
+}
+
+func (b *RingBuffer) FromString(s string) {
+	b.next = 0
+
+	for _, c := range s {
+		if string(c) == "L" {
+			b.buffer = append(b.buffer, LEFT)
+		} else {
+			b.buffer = append(b.buffer, RIGHT)
+		}
+	}
+}
+
 func part1(input string) int {
 	parsed := parseInput(input)
 	_ = parsed
@@ -49,9 +77,6 @@ func part2(input string) int {
 	return 0
 }
 
-func parseInput(input string) (ans []int) {
-	for _, line := range strings.Split(input, "\n") {
-		ans = append(ans, cast.ToInt(line))
-	}
-	return ans
+func parseInput(input string) (ans []string) {
+	return append(ans, strings.Split(input, "\n")...)
 }
