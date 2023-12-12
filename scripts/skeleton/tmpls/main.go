@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/louisdcoulombe/advent-of-code-go/cast"
 	"github.com/louisdcoulombe/advent-of-code-go/util"
 )
 
