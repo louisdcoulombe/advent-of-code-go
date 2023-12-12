@@ -1,9 +1,7 @@
 package main
 
 import (
-	// "container/heap"
 	_ "embed"
-	"encoding/json"
 	"flag"
 	"fmt"
 	"sort"
@@ -13,13 +11,7 @@ import (
 	"github.com/louisdcoulombe/advent-of-code-go/util"
 )
 
-func PrintMap(m map[string]int) {
-	b, err := json.MarshalIndent(m, "", "  ")
-	if err != nil {
-		fmt.Println("error:", err)
-	}
-	fmt.Println(string(b))
-}
+const JACK_VALUE = 1
 
 //go:embed input.txt
 var input string
@@ -63,10 +55,8 @@ func ParseHand(hand string) map[int]int {
 	m := map[int]int{}
 	for i, c := range hand {
 		key := CARDS[string(c)]
-		if val, ok := m[key]; ok {
-			m[key] = val + FindSimilar(string(hand[(i+1):]), string(c))
-		} else {
-			m[key] = FindSimilar(string(hand[(i+1):]), string(c))
+		if _, ok := m[key]; !ok {
+			m[key] = 1 + FindSimilar(string(hand[(i+1):]), string(c))
 		}
 	}
 	// fmt.Printf("%v\n", m)
@@ -89,43 +79,63 @@ var CARDS = map[string]int{
 	"2": 2,
 }
 
-type Hand struct {
-	hand   string
-	bet    int
-	counts map[int]int
-	power  int // 0 (highcard) to 6(5 of a kind)
+func setBit(n int, pos int) int {
+	n |= (1 << pos)
+	return n
 }
 
+func clearBit(n int, pos int) int {
+	mask := ^(1 << pos)
+	n &= mask
+	return n
+}
+
+func hasBit(n int, pos int) bool {
+	val := n & (1 << pos)
+	return (val > 0)
+}
+
+type (
+	CardCount map[int]int
+	Hand      struct {
+		hand   string
+		bet    int
+		counts CardCount
+		power  int // 0 (highcard) to 6(5 of a kind)
+	}
+)
+
 func (h *Hand) CalculatePower() {
-	// 1(0) : high card
-	// 2(1) : pair
-	// 4(2+2) : 2 pair
-	// 8(3) : 3ofakind
-	// 16(3+1) : fullhouse
-	// 32(4) : quad
-	// 64(5) : 5ofakind
 	for _, v := range h.counts {
-		// fmt.Printf("%d=%v\n", k, v)
-		h.power += v
+		// Dont count single card
+		if v <= 1 {
+			continue
+		}
+		// Two pair, set position 0
+		if hasBit(h.power, v) {
+			h.power = setBit(h.power, v-1)
+		}
+
+		h.power = setBit(h.power, v)
 	}
 }
 
 func (h *Hand) UpdateJacks() {
-	max_card := func(m map[int]int) int {
-		max_card := 0
+	max_card := func(m CardCount) (int, int) {
+		mi := 0
 		max_val := 0
 		for k, v := range m {
-			if v > max_val {
-				max_card = k
+			if (k > JACK_VALUE && v > max_val) || (max_val == v && k > mi) {
+				mi = k
 				max_val = v
 			}
 		}
-		return max_card
+		return mi, max_val
 	}
 
-	countJacks := func(m map[int]int) int {
+	countJacks := func(m CardCount) int {
 		for k, v := range m {
-			if k == 11 {
+			if k == JACK_VALUE {
 				return v
 			}
 		}
@@ -137,9 +147,13 @@ func (h *Hand) UpdateJacks() {
 		return
 	}
 
-	maxCard := max_card(h.counts)
-	h.counts[maxCard] += nbJack
-	h.counts[11] = 0
+	maxCard, max_val := max_card(h.counts)
+
+	fmt.Printf("[ %s ] %d:%d (J:%d) = %d(%d) [%d]\n", h.hand, maxCard, max_val, nbJack, maxCard, max_val+nbJack, h.counts[maxCard]+nbJack)
+	if maxCard != JACK_VALUE {
+		h.counts[maxCard] += nbJack
+		h.counts[1] = 0
+	}
 }
 
 type HandHeap []Hand
@@ -149,45 +163,23 @@ func (h HandHeap) Swap(i, j int) { h[i], h[j] = h[j], h[i] }
 func (h HandHeap) Less(i, j int) bool {
 	// Type is greater
 	if h[i].power < h[j].power {
-		fmt.Printf("%v < %v\n", h[i], h[j])
+		// fmt.Printf("%v < %v\n", h[i], h[j])
 		return true
 	}
 	// Type is less
 	if h[i].power > h[j].power {
-		fmt.Printf("%v > %v\n", h[i], h[j])
+		// fmt.Printf("%v > %v\n", h[i], h[j])
 		return false
 	}
-	//
-	// max_card := func(m map[int]int) int {
-	// 	max_card := 0
-	// 	max_val := 0
-	// 	for k, v := range m {
-	// 		if v > max_val {
-	// 			max_card = k
-	// 			max_val = v
-	// 		}
-	// 	}
-	// 	return max_card
-	// }
-	//
-	// max_i := max_card(h[i].counts)
-	// max_j := max_card(h[j].counts)
-	// if max_i < max_j {
-	// 	return true
-	// }
-	// if max_i > max_j {
-	// 	return false
-	// }
-	//
 	for idx := range h[i].hand {
 		left := CARDS[string(h[i].hand[idx])]
 		right := CARDS[string(h[j].hand[idx])]
 		if left < right {
-			fmt.Printf("c: %v(%d) < %v)%d\n", h[i], left, h[j], right)
+			// fmt.Printf("c: %v(%d) < %v)%d\n", h[i], left, h[j], right)
 			return true
 		}
 		if left > right {
-			fmt.Printf("c: %v(%d) > %v)%d\n", h[i], left, h[j], right)
+			// fmt.Printf("c: %v(%d) > %v)%d\n", h[i], left, h[j], right)
 			return false
 		}
 	}
@@ -195,20 +187,6 @@ func (h HandHeap) Less(i, j int) bool {
 	// Same type, check cards
 	fmt.Printf("%v == %v", h[i], h[j])
 	panic("Exact same value!")
-}
-
-func (h *HandHeap) Push(x any) {
-	// Push and Pop use pointer receivers because they modify the slice's length,
-	// not just its contents.
-	*h = append(*h, x.(Hand))
-}
-
-func (h *HandHeap) Pop() any {
-	old := *h
-	n := len(old)
-	x := old[n-1]
-	*h = old[0 : n-1]
-	return x
 }
 
 func part1(input string) int {
@@ -241,6 +219,9 @@ func part1(input string) int {
 }
 
 func part2(input string) int {
+	// Jack counts low
+	CARDS["J"] = JACK_VALUE
+
 	parsed := parseInput(input)
 	hands := []Hand{}
 	for _, line := range parsed {
@@ -263,7 +244,7 @@ func part2(input string) int {
 	sum := 0
 	for rank, hand := range hands {
 		score := hand.bet * (rank + 1)
-		sum += hand.bet * (rank + 1)
+		sum += score
 		fmt.Printf("p:%d | %v > %d = %d\n", hand.power, hand, score, sum)
 		// fmt.Printf("%v > %d = %d\n", hand, score, sum)
 	}
