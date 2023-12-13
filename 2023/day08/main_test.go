@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 )
 
@@ -36,6 +37,11 @@ func Test_RB(t *testing.T) {
 			t.Errorf("%v != %v, index:%d", ans, expected, i)
 		}
 	}
+}
+
+func Test_Movements(t *testing.T) {
+	m := ParseMovements(ParseInput(example0))
+	fmt.Printf("%v", m)
 }
 
 func Test_part1(t *testing.T) {

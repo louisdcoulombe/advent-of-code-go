@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
+	"regexp"
 	"strings"
 
 	// "github.com/louisdcoulombe/advent-of-code-go/cast"
@@ -66,17 +67,54 @@ func (b *RingBuffer) FromString(s string) {
 	}
 }
 
-func part1(input string) int {
-	parsed := parseInput(input)
-	_ = parsed
+type Movements map[string][]string
 
-	return 0
+func ParseMovements(in []string) Movements {
+	re := regexp.MustCompile(`([A-Z]{3}) = \(([A-Z]{3}), ([A-Z]{3})\)`)
+	m := Movements{}
+	for i, l := range in {
+		if i <= 1 {
+			continue
+		}
+
+		matches := re.FindStringSubmatch(l)
+		// fmt.Printf("%v > ", matches)
+		if len(matches) < 4 {
+			panic(fmt.Sprintf("%d:%s=[%v]\n", i, l, matches))
+		}
+		// fmt.Printf("[%s]: (%s, %s)\n", matches[1], matches[2], matches[3])
+		m[matches[1]] = []string{matches[2], matches[3]}
+	}
+	return m
+}
+
+func part1(input string) int {
+	parsed := ParseInput(input)
+	rb := RingBuffer{}
+	rb.FromString(parsed[0])
+	m := ParseMovements(parsed)
+	// fmt.Printf("%v\n", m)
+
+	count := 0
+	dst := "AAA"
+	for dst != "ZZZ" {
+		next := rb.Next()
+		arr, err := m[dst]
+		// fmt.Printf("%d| %d-%s->%v\n", count, next, dst, arr)
+		if !err {
+			panic("Ouch")
+		}
+		dst = arr[next]
+		count++
+	}
+
+	return count
 }
 
 func part2(input string) int {
 	return 0
 }
 
-func parseInput(input string) (ans []string) {
+func ParseInput(input string) (ans []string) {
 	return append(ans, strings.Split(input, "\n")...)
 }
