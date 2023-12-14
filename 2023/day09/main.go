@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/louisdcoulombe/advent-of-code-go/util"
 )
@@ -55,9 +56,19 @@ func calculateDiffs(h History) (ans History) {
 
 func extrapolate(h History) int {
 	fmt.Printf("%v\n", h)
-	if util.Sum[int, int](h) == 0 {
+	allZero := func() bool {
+		for _, i := range h {
+			if i != 0 {
+				return false
+			}
+		}
+		return true
+	}
+
+	if allZero() {
 		return 0
 	}
+
 	return h[len(h)-1] + extrapolate(calculateDiffs(h))
 }
 
@@ -65,16 +76,56 @@ func part1(input string) int {
 	parsed := parseInput(input)
 	_ = parsed
 	histories := parseHistories(parsed)
-	fmt.Printf("%v", histories)
 
-	ans := []int{}
+	sum := 0
 	for _, h := range histories {
-		x := extrapolate(h)
-		fmt.Printf("=%d\n", x)
-		ans = append(ans, x)
-
+		sum += extrapolate(h)
 	}
-	return util.Sum[int, int](ans)
+	return sum
+}
+
+func parallel_part1(input string) int {
+	parsed := parseInput(input)
+	_ = parsed
+	histories := parseHistories(parsed)
+	// fmt.Printf("%v", histories)
+
+	numJobs := len(histories)
+	jobs := make(chan History, len(histories))
+	results := make(chan int, len(histories))
+
+	worker := func(input <-chan History, result chan<- int) {
+		for h := range input {
+			result <- extrapolate(h)
+		}
+	}
+	for w := 0; w < 8; w++ {
+		go worker(jobs, results)
+	}
+
+	for _, h := range histories {
+		jobs <- h
+	}
+	close(jobs)
+
+	// Fan-in: Collect results
+	var wg sync.WaitGroup
+	wg.Add(numJobs) // Set WaitGroup counter to the number of jobs
+
+	// Launch a goroutine to wait for all jobs to finish
+	go func() {
+		wg.Wait()      // Wait for all jobs to be done
+		close(results) // Close the results channel after all jobs are processed
+	}()
+
+	// Process results
+	sum := 0
+	for result := range results {
+		sum += result
+		wg.Done() // Decrease the WaitGroup counter as each result is processed
+	}
+
+	return sum
 }
 
 func part2(input string) int {
