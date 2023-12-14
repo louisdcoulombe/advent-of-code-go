@@ -49,6 +49,10 @@ type RingBuffer struct {
 	buffer []int
 }
 
+func (b *RingBuffer) Reset() {
+	b.next = 0
+}
+
 func (b *RingBuffer) Next() (next int) {
 	next = b.buffer[b.next]
 	b.next = (b.next + 1) % len(b.buffer)
@@ -70,10 +74,10 @@ func (b *RingBuffer) FromString(s string) {
 type Movements map[string][]string
 
 func ParseMovements(in []string) Movements {
-	re := regexp.MustCompile(`([A-Z]{3}) = \(([A-Z]{3}), ([A-Z]{3})\)`)
+	re := regexp.MustCompile(`([1-9A-Z]{3}) = \(([1-9A-Z]{3}), ([1-9A-Z]{3})\)`)
 	m := Movements{}
 	for i, l := range in {
-		if i <= 1 {
+		if i <= 1 || l == "" {
 			continue
 		}
 
@@ -86,6 +90,24 @@ func ParseMovements(in []string) Movements {
 		m[matches[1]] = []string{matches[2], matches[3]}
 	}
 	return m
+}
+
+func EndsWith(s string, end string) bool {
+	return string(s[len(s)-1]) == end
+}
+
+type Movement struct {
+	key  string
+	done bool
+}
+
+func MovementsKeysEndsWith(m Movements, end string) (ans []Movement) {
+	for k := range m {
+		if EndsWith(k, end) {
+			ans = append(ans, Movement{k, false})
+		}
+	}
+	return ans
 }
 
 func part1(input string) int {
@@ -111,8 +133,54 @@ func part1(input string) int {
 	return count
 }
 
+func GCD(a, b int) int {
+	for b != 0 {
+		t := b
+		b = a % b
+		a = t
+	}
+	return a
+}
+
+func LCM(a, b int, integers ...int) int {
+	result := a * b / GCD(a, b)
+	for i := 0; i < len(integers); i++ {
+		result = LCM(result, integers[i])
+	}
+	return result
+}
+
+func FindCycles(rb RingBuffer, m Movements) (ans []int) {
+	initals := MovementsKeysEndsWith(m, "A")
+	for _, dst := range initals {
+		rb.Reset()
+		count := 0
+		for !dst.done {
+			next := rb.Next()
+			arr, ok := m[dst.key]
+			if !ok {
+				panic("Ouch")
+			}
+			dst.key = arr[next]
+			dst.done = EndsWith(dst.key, "Z")
+			count++
+		}
+
+		ans = append(ans, count)
+	}
+
+	return ans
+}
+
 func part2(input string) int {
-	return 0
+	parsed := ParseInput(input)
+	rb := RingBuffer{}
+	rb.FromString(parsed[0])
+	fmt.Printf("%v\n\n", rb)
+
+	m := ParseMovements(parsed)
+	cycles := FindCycles(rb, m)
+	return LCM(cycles[0], cycles[1], cycles[2:]...)
 }
 
 func ParseInput(input string) (ans []string) {
