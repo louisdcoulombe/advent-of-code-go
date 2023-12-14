@@ -5,7 +5,9 @@ import (
 )
 
 var (
-	example1 = ``
+	example1 = `0 3 6 9 12 15
+1 3 6 10 15 21
+10 13 16 21 30 45`
 	example2 = ``
 )
 
@@ -18,7 +20,7 @@ func Test_part1(t *testing.T) {
 		{
 			name:  "example1",
 			input: example1,
-			want:  0,
+			want:  114,
 		},
 		// {
 		// 	name:  "actual",
