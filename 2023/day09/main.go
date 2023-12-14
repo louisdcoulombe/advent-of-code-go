@@ -83,6 +83,42 @@ func part1(input string) int {
 	return sum
 }
 
+func extrapolate_front(h History) int {
+	// fmt.Printf("%v\n", h)
+	allZero := func() bool {
+		for _, i := range h {
+			if i != 0 {
+				return false
+			}
+		}
+		return true
+	}
+
+	if allZero() {
+		return 0
+	}
+
+	f := h[0] - extrapolate_front(calculateDiffs(h))
+	// fmt.Printf("%d %v\n", f, h)
+	return f
+}
+
+func part2(input string) int {
+	parsed := parseInput(input)
+	histories := parseHistories(parsed)
+	fmt.Printf("%v\n", histories)
+
+	sum := 0
+	for _, h := range histories {
+		sum += extrapolate_front(h)
+	}
+	return sum
+}
+
+func parseInput(input string) (ans []string) {
+	return append(ans, strings.Split(input, "\n")...)
+}
+
 func parallel_part1(input string) int {
 	parsed := parseInput(input)
 	_ = parsed
@@ -125,40 +161,4 @@ func parallel_part1(input string) int {
 	}
 
 	return sum
-}
-
-func extrapolate_front(h History) int {
-	// fmt.Printf("%v\n", h)
-	allZero := func() bool {
-		for _, i := range h {
-			if i != 0 {
-				return false
-			}
-		}
-		return true
-	}
-
-	if allZero() {
-		return 0
-	}
-
-	f := h[0] - extrapolate_front(calculateDiffs(h))
-	// fmt.Printf("%d %v\n", f, h)
-	return f
-}
-
-func part2(input string) int {
-	parsed := parseInput(input)
-	histories := parseHistories(parsed)
-	fmt.Printf("%v\n", histories)
-
-	sum := 0
-	for _, h := range histories {
-		sum += extrapolate_front(h)
-	}
-	return sum
-}
-
-func parseInput(input string) (ans []string) {
-	return append(ans, strings.Split(input, "\n")...)
 }
