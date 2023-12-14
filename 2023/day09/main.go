@@ -54,18 +54,18 @@ func calculateDiffs(h History) (ans History) {
 	return ans
 }
 
+func allZero(h History) bool {
+	for _, i := range h {
+		if i != 0 {
+			return false
+		}
+	}
+	return true
+}
+
 func extrapolate(h History) int {
 	// fmt.Printf("%v\n", h)
-	allZero := func() bool {
-		for _, i := range h {
-			if i != 0 {
-				return false
-			}
-		}
-		return true
-	}
-
-	if allZero() {
+	if allZero(h) {
 		return 0
 	}
 
@@ -85,16 +85,7 @@ func part1(input string) int {
 
 func extrapolate_front(h History) int {
 	// fmt.Printf("%v\n", h)
-	allZero := func() bool {
-		for _, i := range h {
-			if i != 0 {
-				return false
-			}
-		}
-		return true
-	}
-
-	if allZero() {
+	if allZero(h) {
 		return 0
 	}
 
