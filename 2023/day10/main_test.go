@@ -5,8 +5,12 @@ import (
 )
 
 var (
-	example1 = ``
-	example2 = ``
+	example1 = `..F7.
+.FJ|.
+SJ.L7
+|F--J
+LJ...`
+	example2 = example1
 )
 
 func Test_part1(t *testing.T) {
