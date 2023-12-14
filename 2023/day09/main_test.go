@@ -8,7 +8,7 @@ var (
 	example1 = `0 3 6 9 12 15
 1 3 6 10 15 21
 10 13 16 21 30 45`
-	example2 = ``
+	example2 = example1
 )
 
 func Test_part1(t *testing.T) {
@@ -46,7 +46,7 @@ func Test_part2(t *testing.T) {
 		{
 			name:  "example2",
 			input: example2,
-			want:  0,
+			want:  2,
 		},
 		// {
 		// 	name:  "actual",
