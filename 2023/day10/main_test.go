@@ -1,7 +1,11 @@
 package main
 
 import (
+	"fmt"
+	"sort"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 var (
@@ -13,6 +17,160 @@ LJ...`
 	example2 = example1
 )
 
+func Test_IsIn(t *testing.T) {
+	p := Point{0, 1}
+	want := []Point{{0, 1}, {0, 0}}
+	if !p.IsIn(want) {
+		t.Errorf("Not in!")
+	}
+
+	p = Point{0, 0}
+	if !p.IsIn(want) {
+		t.Errorf("0,0 Not in!")
+	}
+}
+
+func TestGetTilesEnclosed(t *testing.T) {
+	tcs := []struct {
+		desc     string
+		input    []string
+		expected int
+	}{
+		{
+			desc: "expected 4",
+			input: []string{
+				"...........",
+				".S-------7.",
+				".|F-----7|.",
+				".||.....||.",
+				".||.....||.",
+				".|L-7.F-J|.",
+				".|..|.|..|.",
+				".L--J.L--J.",
+				"...........",
+			},
+			expected: 4,
+		},
+		{
+			desc: "expected 4",
+			input: []string{
+				"..........",
+				".S------7.",
+				".|F----7|.",
+				".||....||.",
+				".||....||.",
+				".|L-7F-J|.",
+				".|..||..|.",
+				".L--JL--J.",
+				"..........",
+			},
+			expected: 4,
+		},
+		{
+			desc: "expected 8",
+			input: []string{
+				".F----7F7F7F7F-7....",
+				".|F--7||||||||FJ....",
+				".||.FJ||||||||L7....",
+				"FJL7L7LJLJ||LJ.L-7..",
+				"L--J.L7...LJS7F-7L7.",
+				"....F-J..F7FJ|L7L7L7",
+				"....L7.F7||L7|.L7L7|",
+				".....|FJLJ|FJ|F7|.LJ",
+				"....FJL-7.||.||||...",
+				"....L---J.LJ.LJLJ...",
+			},
+			expected: 8,
+		},
+		{
+			desc: "expected 10",
+			input: []string{
+				"FF7FSF7F7F7F7F7F---7",
+				"L|LJ||||||||||||F--J",
+				"FL-7LJLJ||||||LJL-77",
+				"F--JF--7||LJLJ7F7FJ-",
+				"L---JF-JLJ.||-FJLJJ7",
+				"|F|F-JF---7F7-L7L|7|",
+				"|FFJF7L7F-JF7|JL---7",
+				"7-L-JL7||F7|L7F-7F7|",
+				"L.L7LFJ|||||FJL7||LJ",
+				"L7JLJL-JLJLJL--JLJ.L",
+			},
+			expected: 10,
+		},
+	}
+	for _, tc := range tcs {
+		t.Run(tc.desc, func(t *testing.T) {
+			value := GetTilesEnclosed(tc.input)
+			if diff := cmp.Diff(tc.expected, value); diff != "" {
+				t.Errorf("values has diff %s", diff)
+			}
+		})
+	}
+}
+
+func Test_CheckAround(t *testing.T) {
+	tests := []struct {
+		name  string
+		input Point
+		wants []Point
+	}{
+		{
+			name:  "Start",
+			input: Point{0, 2},
+			wants: []Point{{0, 3}, {1, 2}},
+		},
+		{
+			name:  "|",
+			input: Point{0, 3},
+			wants: []Point{{0, 4}},
+		},
+		{
+			name:  "-:F&-",
+			input: Point{2, 3},
+			wants: []Point{{1, 3}, {3, 3}},
+		},
+		{
+			name:  "7:L&J",
+			input: Point{4, 2},
+			wants: []Point{{4, 3}, {3, 2}},
+		},
+		{
+			name:  "F:J&J",
+			input: Point{1, 3},
+			wants: []Point{{2, 3}, {1, 4}},
+		},
+		{
+			name:  "L:7&|",
+			input: Point{3, 2},
+			wants: []Point{{4, 2}, {3, 1}},
+		},
+	}
+
+	for _, tt := range tests {
+		g := makeGrid(parseInput(example1))
+		// fmt.Printf("Test '%s'::", tt.name)
+		gots := g.checkAround(tt.input)
+		for _, s := range g.grid {
+			fmt.Printf("%s\n", s)
+		}
+
+		sort.Sort(PointList(gots))
+		sort.Sort(PointList(tt.wants))
+
+		if len(gots) != len(tt.wants) {
+			t.Errorf("'%s' -> checkAround(%v) = %v, want %v", tt.name, tt.input, gots, tt.wants)
+			continue
+		}
+
+		for i, want := range tt.wants {
+			if gots[i].x != want.x && gots[i].y != want.y {
+				t.Errorf("'%s' -> checkAround(%v) = %v, want %v (%d)", tt.name, tt.input, gots, tt.wants, i)
+			}
+		}
+	}
+}
+
 func Test_part1(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -22,7 +180,7 @@ func Test_part1(t *testing.T) {
 		{
 			name:  "example1",
 			input: example1,
-			want:  0,
+			want:  8,
 		},
 		// {
 		// 	name:  "actual",

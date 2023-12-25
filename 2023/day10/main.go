@@ -20,29 +20,131 @@ func init() {
 	}
 }
 
-//	N
-//
-// W E
-//
-//	S
-const (
-	VER     = "|" // is a vertical pipe connecting north and south.
-	HOR     = "-" // is a horizontal pipe connecting east and west.
-	T_RIGHT = "L" // is a 90-degree bend connecting north and east.
-	T_LEFT  = "J" // is a 90-degree bend connecting north and west.
-	B_LEFT  = "7" // is a 90-degree bend connecting south and west.
-	B_RIGHT = "F" // is a 90-degree bend connecting south and east.
-	GROUND  = "." // is ground; there is no pipe in this tile.
-	START   = "S" // is the starting position of the animal; there is a pipe on this tile, but your sketch doesn't show what shape the pipe has.
+type (
+	PointList []Point
+	Point     struct {
+		x int
+		y int
+	}
 )
 
-var DIRECTIONS = map[string][]int{
-	// x, y
-	VER:     {0, 1},
-	HOR:     {1, 0},
-	T_RIGHT: {1, -1},
-	T_LEFT:  {-1, -1},
-	B_LEFT:  {-1, 1},
+func (e PointList) Len() int {
+	return len(e)
+}
+
+func (e PointList) Less(i, j int) bool {
+	if e[i].y < e[j].y {
+		return true
+	}
+	if e[i].y > e[j].y {
+		return false
+	}
+	return e[i].x < e[j].x
+}
+
+func (e PointList) Swap(i, j int) {
+	e[i], e[j] = e[j], e[i]
+}
+
+func (self Point) Sub(p Point) Point {
+	return Point{self.x - p.x, self.y - p.y}
+}
+
+func (self Point) IsIn(list []Point) bool {
+	for _, p := range list {
+		if self == p {
+			return true
+		}
+	}
+	return false
+}
+
+func makeGrid(s []string) Grid {
+	g := Grid{
+		s,
+		Point{0, 0},
+		len(s) - 1,
+		len(s[0]) - 1,
+	}
+	return g
+}
+
+type Grid struct {
+	grid    []string
+	current Point
+	max_row int
+	max_col int
+}
+
+func (self Grid) Print() {
+	// Print final grid
+	for _, s := range self.grid {
+		fmt.Printf("%s\n", s)
+	}
+}
+
+func AbsInt(x int) int {
+	if x < 0 {
+		return -x
+	}
+	return x
+}
+
+func (g *Grid) checkAround(p Point) (ans []Point) {
+	corners := []Point{{0, 0}, {-1, -1}, {1, -1}, {-1, 1}, {1, 1}}
+	for _, roff := range []int{-1, 0, 1} {
+		x := p.x + roff
+		if x < 0 || x > g.max_row {
+			continue
+		}
+
+		for _, coff := range []int{-1, 0, 1} {
+			y := p.y + coff
+			if y < 0 || y > g.max_col {
+				continue
+			}
+
+			candidate := Point{x, y}
+
+			// Dont check corners and same point
+			if p.Sub(candidate).IsIn(corners) {
+				continue
+			}
+
+			candidate_symbol := string(g.grid[y][x])
+			current := string(g.grid[p.y][p.x])
+			diff := candidate.Sub(p)
+			fmt.Printf(" '%s'%v - '%s'%v = %v", candidate_symbol, candidate, current, p, diff)
+
+			indexes, ok := SYMBOL_GO[candidate_symbol]
+			if !ok {
+				fmt.Printf("\n")
+				continue
+			}
+
+			if diff.IsIn(indexes) {
+				fmt.Printf(" ADDED")
+				ans = append(ans, candidate)
+			}
+			fmt.Printf("\n")
+		}
+	}
+	return ans
+}
+
+// Where you are allowed to come from (Symbol position - Current position)
+//
+//	N (0, 1)
+//	 W (1, 0)
+//	 E (-1, 0)
+//	S (0, -1)
+var SYMBOL_GO = map[string][]Point{
+	"|": {{0, -1}, {0, 1}},  // is a vertical pipe connecting north (0, -1) and south(0, 1)
+	"-": {{-1, 0}, {1, 0}},  // is a horizontal pipe connecting east (-1,0) and west (1,0)
+	"L": {{0, 1}, {-1, 0}},  // is a 90-degree bend connecting north(0, -1)  and east (-1, 0)
+	"J": {{0, 1}, {1, 0}},   // is a 90-degree bend connecting north(0, -1)  and west (1,0 )
+	"7": {{0, -1}, {1, 0}},  // is a 90-degree bend connecting south(0, 1)  and wes (1, 0)
+	"F": {{0, -1}, {-1, 0}}, // is a 90-degree bend connecting south(0, 1)  and east (-1, 0)
 }
 
 func main() {
@@ -62,26 +164,102 @@ func main() {
 	}
 }
 
-func findStartIndex(g []string) (int, int) {
+func findStartIndex(g []string) Point {
 	for y := range g {
-		for x, c := range g[y] {
-			fmt.Printf("%s", string(c))
+		for x := range g[y] {
 			if string(g[y][x]) == "S" {
-				return x, y
+				return Point{x, y}
 			}
 		}
-		fmt.Printf("\n")
 	}
-	// panic("Start not found")
-	return 0, 0
+	panic("Start not found")
+}
+
+type Queue []Point
+
+func (q *Queue) Push(p Point) {
+	*q = append(*q, p)
+}
+
+func (q *Queue) Pop() (val Point) {
+	if len(*q) == 0 {
+		panic("Empty queue")
+	}
+
+	val = (*q)[0]
+	*q = (*q)[1:]
+	return val
 }
 
 func part1(input string) int {
-	grid := parseInput(input)
-	x, y := findStartIndex(grid)
-	fmt.Printf("\nS=(%d,%d)\n", x, y)
+	in := parseInput(input)
+	return GetTilesEnclosed(in)
+}
 
-	return 0
+func GetTilesEnclosed(input []string) int {
+	g := makeGrid(input)
+
+	start := findStartIndex(g.grid)
+	fmt.Printf("\nS=(%d,%d)\n", start.x, start.y)
+
+	queue := Queue{}
+	for _, pts := range g.checkAround(start) {
+		queue = append(queue, pts)
+	}
+
+	g.current = start
+	counter := 0
+	putNumber := func(p Point) {
+		str := fmt.Sprint(counter % 9)
+		if str == "7" {
+			str = "X"
+		}
+		g.grid[p.y] = util.ReplaceAtIndex(g.grid[p.y], str, p.x)
+	}
+
+	putNumber(start)
+	if len(queue) != 2 {
+		panic("Not 2 items")
+	}
+
+	for len(queue) > 0 {
+		counter++
+		// Check first side
+		current := queue.Pop()
+		fmt.Printf("-- %v\n", current)
+		values := g.checkAround(current)
+		if len(values) == 0 && len(queue) == 0 {
+			fmt.Printf("Last %d", counter)
+			break
+		}
+		if len(values) == 0 {
+			fmt.Printf("Len=0\n")
+			continue
+		}
+		// Append next value
+		queue.Push(values[0])
+		putNumber(current)
+		g.Print()
+
+		// Pop the other side
+		current = queue.Pop()
+		values = g.checkAround(current)
+		if len(values) == 0 && len(queue) == 0 {
+			fmt.Printf("Last 2 = %d", counter)
+			break
+		}
+		if len(values) == 0 {
+			fmt.Printf("Len=0\n")
+			continue
+		}
+
+		// Append next value
+		queue.Push(values[0])
+		putNumber(current)
+		g.Print()
+	}
+
+	return counter - 1
 }
 
 func part2(input string) int {
