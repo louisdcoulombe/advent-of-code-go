@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"flag"
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/louisdcoulombe/advent-of-code-go/util"
@@ -57,52 +58,103 @@ func part1(input string) int {
 	return sum
 }
 
-func RemoveItems(removed []int, box *Box) {
-	for _, i := range removed {
-		length := len(*box)
-		idx_min := max(0, i)
-		idx_max := min(length-1, i+1)
-		*box = append((*box)[0:idx_min], (*box)[i:idx_max]...)
+func cmd_dash(boxes *Boxes, in Lens) {
+	box := make(Box, len((*boxes)[in.hash]))
+	copy(box, (*boxes)[in.hash])
+	// fmt.Printf("%d: %v\n", in.hash, (*boxes)[in.hash])
+
+	(*boxes)[in.hash] = Box{}
+	// if len exist in box = hash
+	for _, b := range box {
+		// if the lens exist, remove it
+		if b.name == in.name {
+			continue
+		}
+		// fmt.Printf("[- %v]", b)
+		(*boxes)[in.hash] = append((*boxes)[in.hash], b)
 	}
+
+	// fmt.Printf("- > %v\n", (*boxes)[in.hash])
 }
 
-func cmd_dash(boxes *Boxes, in Lens) {
+func cmd_equal(boxes *Boxes, in Lens) {
 	// Calculate hash
-	hash := Hash(in.op)
+	hash := in.hash
 	box := &(*boxes)[hash]
-	// if len exist in box = hash
-	removed := []int{}
+	// Extract focus
+	if len(*box) == 0 {
+		*box = append(*box, in)
+		// fmt.Printf("- > %v\n", (*boxes)[hash])
+		return
+	}
+
 	for i, b := range *box {
 		if b.name == in.name {
-			removed = append(removed, i)
+			(*box)[i] = in
+			// fmt.Printf("- > %v\n", (*boxes)[hash])
+			return
 		}
 	}
 
-	// remove the lens from box
-	// move other lens behind forward
-}
-
-func cmd_equal(boxes *Boxes, in Lens) int {
-	// Calculate hash
-	// _ := Hash(in.op)
-	// Extract focus
-	// Remove len of same type if exist
-	// Otherwise add at the end
-	return 0
+	*box = append(*box, in)
+	// fmt.Printf("- > %v\n", (*boxes)[hash])
 }
 
 type Lens struct {
-	op    string
-	name  string
-	focus int
+	isEqual bool
+	hash    int
+	op      string
+	name    string
+	focus   int
 }
 type (
 	Box   []Lens
 	Boxes [][]Lens
 )
 
+func FromOp(op string) Lens {
+	l := Lens{}
+	l.op = op
+	if strings.Contains(op, "=") {
+		l.isEqual = true
+		str := strings.Split(op, "=")
+		l.name = str[0]
+		var ok error
+		l.focus, ok = strconv.Atoi(str[1])
+		if ok != nil {
+			panic("Atoi failed")
+		}
+	} else {
+		l.isEqual = false
+		l.name = strings.Split(op, "-")[0]
+		l.focus = 0
+	}
+	l.hash = Hash(l.name)
+	// fmt.Printf("%v", l)
+	return l
+}
+
 func part2(input string) int {
-	return 0
+	boxes := make(Boxes, 256)
+
+	parsed := parseInput(input)
+	for _, op := range strings.Split(parsed[0], ",") {
+		lens := FromOp(op)
+		if lens.isEqual {
+			cmd_equal(&boxes, lens)
+		} else {
+			cmd_dash(&boxes, lens)
+		}
+	}
+
+	sum := 0
+	for i, box := range boxes {
+		for j, lens := range box {
+			sum += (1 + i) * ((1 + j) * lens.focus)
+			// fmt.Printf("(%d, %d) %v = %d\n", i, j, lens, sum)
+		}
+	}
+	return sum
 }
 
 func parseInput(input string) (ans []string) {
