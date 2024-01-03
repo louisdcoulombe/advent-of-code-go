@@ -48,7 +48,7 @@ func (self GridPoint) ValueEqual(p GridPoint) bool {
 }
 
 func (self GridPoint) Sub(p GridPoint) GridPoint {
-	return GridPoint{self.x - p.x, self.y - p.y, "", false}
+	return NewPoint(self.x-p.x, self.y-p.y)
 }
 
 func (self GridPoint) IsIn(list GridRow) bool {
@@ -157,16 +157,13 @@ func (g *Grid) GetNeighbours(p GridPoint, checkCorners bool) (ans GridRow) {
 			}
 			// fmt.Printf(%v\n", candidate)
 
-			// Dont check corners and same point
+			// Dont check corners if not required
 			corners := GridRow{NewPoint(0, 0), NewPoint(-1, -1), NewPoint(1, -1), NewPoint(-1, 1), NewPoint(1, 1)}
 			if !checkCorners && p.Sub(candidate).IsIn(corners) {
-				// fmt.Printf("skip corner %d,%d\n", x, y)
 				continue
 			}
 
-			// fmt.Printf("%d,%d\n", x, y)
 			ans = append(ans, candidate)
-			// fmt.Printf("%v", ans)
 		}
 	}
 	return ans

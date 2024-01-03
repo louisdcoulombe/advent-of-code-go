@@ -1,7 +1,6 @@
 package util
 
 import (
-	// "fmt"
 	"sort"
 	"strings"
 	"testing"
@@ -133,11 +132,6 @@ func Test_CheckNeighbours(t *testing.T) {
 	for _, tt := range tests {
 		g := MakeGrid(parseInput(example1))
 		gots := g.GetNeighbours(tt.input, tt.corners)
-		// fmt.Printf("%v", gots)
-		// fmt.Printf("Test '%s'::", tt.name)
-		// for _, s := range g.grid {
-		// 	fmt.Printf("%s\n", s)
-		// }
 
 		sort.Sort(GridRow(gots))
 		sort.Sort(GridRow(tt.wants))
