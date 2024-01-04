@@ -30,6 +30,18 @@ func NewPointV(x, y int, v string) GridPoint {
 	return p
 }
 
+func (self GridPoint) Y() int {
+	return self.y
+}
+
+func (self GridPoint) X() int {
+	return self.x
+}
+
+func (self GridPoint) Value() string {
+	return self.value
+}
+
 func (self GridPoint) WithValue(v string) GridPoint {
 	self.value = v
 	return self

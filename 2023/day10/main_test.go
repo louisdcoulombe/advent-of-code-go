@@ -1,11 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"sort"
+	// "fmt"
+	// "sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	// "github.com/louisdcoulombe/advent-of-code-go/util"
 )
 
 var (
@@ -16,19 +17,6 @@ SJ.L7
 LJ...`
 	example2 = example1
 )
-
-func Test_IsIn(t *testing.T) {
-	p := Point{0, 1}
-	want := []Point{{0, 1}, {0, 0}}
-	if !p.IsIn(want) {
-		t.Errorf("Not in!")
-	}
-
-	p = Point{0, 0}
-	if !p.IsIn(want) {
-		t.Errorf("0,0 Not in!")
-	}
-}
 
 func TestGetTilesEnclosed(t *testing.T) {
 	tcs := []struct {
@@ -106,68 +94,6 @@ func TestGetTilesEnclosed(t *testing.T) {
 				t.Errorf("values has diff %s", diff)
 			}
 		})
-	}
-}
-
-func Test_CheckAround(t *testing.T) {
-	tests := []struct {
-		name  string
-		input Point
-		wants []Point
-	}{
-		{
-			name:  "Start",
-			input: Point{0, 2},
-			wants: []Point{{0, 3}, {1, 2}},
-		},
-		{
-			name:  "|",
-			input: Point{0, 3},
-			wants: []Point{{0, 4}},
-		},
-		{
-			name:  "-:F&-",
-			input: Point{2, 3},
-			wants: []Point{{1, 3}, {3, 3}},
-		},
-		{
-			name:  "7:L&J",
-			input: Point{4, 2},
-			wants: []Point{{4, 3}, {3, 2}},
-		},
-		{
-			name:  "F:J&J",
-			input: Point{1, 3},
-			wants: []Point{{2, 3}, {1, 4}},
-		},
-		{
-			name:  "L:7&|",
-			input: Point{3, 2},
-			wants: []Point{{4, 2}, {3, 1}},
-		},
-	}
-
-	for _, tt := range tests {
-		g := makeGrid(parseInput(example1))
-		// fmt.Printf("Test '%s'::", tt.name)
-		gots := g.checkAround(tt.input)
-		for _, s := range g.grid {
-			fmt.Printf("%s\n", s)
-		}
-
-		sort.Sort(PointList(gots))
-		sort.Sort(PointList(tt.wants))
-
-		if len(gots) != len(tt.wants) {
-			t.Errorf("'%s' -> checkAround(%v) = %v, want %v", tt.name, tt.input, gots, tt.wants)
-			continue
-		}
-
-		for i, want := range tt.wants {
-			if gots[i].x != want.x && gots[i].y != want.y {
-				t.Errorf("'%s' -> checkAround(%v) = %v, want %v (%d)", tt.name, tt.input, gots, tt.wants, i)
-			}
-		}
 	}
 }
 
